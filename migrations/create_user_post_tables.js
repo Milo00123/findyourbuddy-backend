@@ -29,6 +29,7 @@ exports.up = function (knex) {
           .references("user.id")
           .onUpdate("CASCADE")
           .onDelete("CASCADE");
+        table.string("location").nullable();
         table.timestamp("created_at").defaultTo(knex.fn.now());
         table
           .timestamp("updated_at")
