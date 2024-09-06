@@ -1,7 +1,9 @@
-
+const knex = require('knex')(require('../knexfile'));
 const router = require('express').Router();
 const multer = require('multer');
 const jwt = require('jsonwebtoken'); 
+const bcrypt = require('bcryptjs');
+const authenticateToken = require('./middleware/auth-middleware');
 
 
 const storage = multer.diskStorage({
@@ -44,11 +46,15 @@ router.get('/', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Email and password are required' });
     }
     try {
-        const user = await knex('user').where({ email, password }).first();
+        const user = await knex('user').where({ email }).first();
         if (!user) {
             return res.status(401).json({ success: false, message: 'Invalid email or password' });
         }
         try {
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (!isMatch) {
+                return res.status(401).json({ success: false, message: 'Invalid email or password' });
+            }
             const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
             return res.status(200).json({ success: true, userId: user.id, token });
         } catch (tokenError) {
@@ -66,35 +72,66 @@ router.get('/', async (req, res) => {
 });
 
 
-router.delete('/:id', async (req, res)=>{
-    try{
+
+router.delete('/:id', authenticateToken, async (req, res) => {
+    try {
+        const user = await knex('user').where('id', req.params.id).first();
+
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+
+        // Check if the user is authorized to delete the profile
+        if (user.id !== req.user.id) {
+            return res.status(403).send('You are not authorized to delete this profile');
+        }
+
+        // Delete the user
         await knex('user').where('id', req.params.id).del();
-        res.status(200).send('user deleted');
-    } catch (err){
-        res.status(400).send(`Error deleting User:${err.message} `)
+        res.status(200).send('User deleted');
+    } catch (err) {
+        res.status(400).send(`Error deleting user: ${err.message}`);
     }
 });
 
-router.put('/:id', upload.single('profile_image'), async (req, res) => {
-    const { password, about, riding_level } = req.body;
+router.put('/:id', authenticateToken, upload.single('profile_image'), async (req, res) => {
+    const { name, password, about } = req.body;
     const profileImage = req.file ? `/uploads/${req.file.filename}` : null;
-  
+
     try {
-      const updateData = { password, about, riding_level };
-      if (profileImage) {
-        updateData.profile_image = profileImage;
-      }
-  
-      const updated = await knex('user').where('id', req.params.id).update(updateData);
-      if (updated) {
-        res.status(200).json({ message: 'User updated' });
-      } else {
-        res.status(404).json({ message: 'User not found' });
-      }
+        const updateData = { name, about };
+
+        // If a new password is provided, hash it before updating
+        if (password) {
+            updateData.password = await bcrypt.hash(password, 10);
+        }
+
+        // If a new profile image is uploaded, update the image field
+        if (profileImage) {
+            updateData.profile_image = profileImage;
+        }
+
+        // Ensure the user trying to update the profile is the owner
+        const user = await knex('user').where('id', req.params.id).first();
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (user.id !== req.user.id) {
+            return res.status(403).json({ message: 'You are not authorized to update this profile' });
+        }
+
+        // Update the user's profile
+        const updated = await knex('user').where('id', req.params.id).update(updateData);
+        if (updated) {
+            res.status(200).json({ message: 'User updated successfully' });
+        } else {
+            res.status(400).json({ message: 'Failed to update user' });
+        }
     } catch (err) {
-      res.status(400).json({ message: `Error updating user: ${err.message}` });
+        res.status(400).json({ message: `Error updating user: ${err.message}` });
     }
-  });
+});
 
 
 

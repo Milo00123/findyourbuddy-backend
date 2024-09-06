@@ -48,13 +48,16 @@ router.post('/', authenticateToken, async (req, res) => {
   });
 
 //update posts
-router.put('/:id', async (req, res) => {
-    const { title, content, user_id, location } = req.body;
+router.put('/:id', authenticateToken, async (req, res) => {
+    const { title, content, location } = req.body;
     try {
       const post = await knex('post').where('id', req.params.id).first();
-      if (post.user_id !== user_id) {
+
+      // Use req.user.id (from JWT) to check authorization
+      if (post.user_id !== req.user.id) {
         return res.status(403).json({ message: 'You are not authorized to update this post' });
       }
+
       const updated = await knex('post').where('id', req.params.id).update({ title, content, location });
       if (updated) {
         res.status(200).json({ message: 'Post updated' });
@@ -64,25 +67,27 @@ router.put('/:id', async (req, res) => {
     } catch (err) {
       res.status(400).json({ message: `Error updating post: ${err.message}` });
     }
-  });
+});
 
 //delete a post  
 
-router.delete('/:id', async (req, res) => {
-    const { userId } = req.body;
+router.delete('/:id', authenticateToken, async (req, res) => {
     try {
       const post = await knex('post').where('id', req.params.id).first();
       if (!post) {
         return res.status(404).send('Post not found');
       }
-      if (post.user_id !== userId) {
+
+      // Check if the user making the request is the owner of the post
+      if (post.user_id !== req.user.id) {
         return res.status(403).send('You are not authorized to delete this post');
       }
+
       await knex('post').where('id', req.params.id).del();
       res.status(200).send('Post deleted');
     } catch (err) {
       res.status(400).send(`Error deleting post: ${err.message}`);
     }
-  });
+});
 
 module.exports = router;

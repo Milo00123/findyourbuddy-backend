@@ -16,7 +16,7 @@ const chatRoutes = require('./routes/chat-routes.js');
 
 // basic home route
 app.get('/', (req, res) => {
-  res.send('Welcome to my API');
+  res.send('Welcome to Find Your Buddy API');
 });
 
 app.use('/images', express.static(path.join(__dirname, 'seed-data/images')));
