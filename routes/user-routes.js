@@ -95,11 +95,11 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 });
 
 router.put('/:id', authenticateToken, upload.single('profile_image'), async (req, res) => {
-    const { name, password, about } = req.body;
+    const { name, password, about, riding_level } = req.body;
     const profileImage = req.file ? `/uploads/${req.file.filename}` : null;
 
     try {
-        const updateData = { name, about };
+        const updateData = { name, about, riding_level };
 
         // If a new password is provided, hash it before updating
         if (password) {
@@ -132,6 +132,7 @@ router.put('/:id', authenticateToken, upload.single('profile_image'), async (req
         res.status(400).json({ message: `Error updating user: ${err.message}` });
     }
 });
+
 
 
 

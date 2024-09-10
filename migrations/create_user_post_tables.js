@@ -23,6 +23,7 @@ exports.up = function (knex) {
         table.string("title").notNullable();
         table.string("content", 1000).notNullable();
         table.integer("likes").notNullable().defaultTo(0);
+        table.string("location").notNullable();
         table
           .integer("user_id")
           .unsigned()
