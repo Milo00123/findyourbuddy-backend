@@ -1,6 +1,6 @@
 const knex = require("knex")(require('../knexfile'));
 const router = require('express').Router();
-const authenticateToken = require('./middleware/auth-middleware');
+
 
 
 // Fetch messages for a specific post
@@ -17,14 +17,15 @@ router.get('/:postId', async (req, res) => {
   });
 
 // Post a new message
-router.post('/',authenticateToken, async (req, res) => {
+router.post('/', (req, res) => {
   const { post_id, user_id, message } = req.body;
-  try {
-    const [id] = await knex('chats').insert({ post_id, user_id, message });
-    res.status(201).json({ id });
-  } catch (err) {
-    res.status(400).send(`Error posting message: ${err.message}`);
-  }
+  knex('chats').insert({ post_id, user_id, message })
+    .then(() => {
+      res.status(201).json({ message: 'Message posted successfully' });
+    })
+    .catch((err) => {
+      res.status(400).json({ error: err.message });
+    });
 });
 
 // Edit a message

@@ -3,11 +3,23 @@ const app = express();
 const cors = require('cors');
 require("dotenv").config();
 const path = require('path');
+const session =require('express-session');
 
 
 const PORT = process.env.PORT || 5050;
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
+
+app.use(session({
+  secret: 'yourSecretKey',  // Use a strong secret
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // Use secure: true in production with HTTPS
+}));
+
 
 const userRoutes = require('./routes/user-routes.js');
 const signUpRoute = require('./routes/sign-up-routes.js');
