@@ -29,27 +29,28 @@ router.get('/:id', async (req, res) => {
         res.status(400).send(`Error retrieving post: ${err.message}`);
     }
 });
+
 router.get('/user/:user_id/posts', async (req, res) => {
-    const { user_id } = req.params; // Extract user_id from route parameters
+    const { user_id } = req.params;
     try {
         const posts = await knex('post')
             .join('user', 'post.user_id', '=', 'user.id')
             .where('post.user_id', user_id)
             .select('post.*', 'user.name', 'user.profile_image');
-        
+
         if (posts.length === 0) {
             return res.status(404).send('No posts found for this user');
         }
 
         res.status(200).json(posts);
     } catch (err) {
-        res.status(400).send(`Error retrieving user's posts: ${err.message}`);
+        res.status(400).send(`Error retrieving posts for user: ${err.message}`);
     }
 });
 
 // create a new post 
 router.post('/', async (req, res) => {
-    const { title, content, location, user_id } = req.body;  // Ensure user_id is passed in request body
+    const { title, content, location, user_id } = req.body; 
     try {
         const [id] = await knex('post').insert({ title, content, location, user_id });
         res.status(201).json({ id });
@@ -60,7 +61,7 @@ router.post('/', async (req, res) => {
 
 // update posts
 router.put('/:id', async (req, res) => {
-    const { title, content, location, user_id } = req.body;  // Ensure user_id is passed in request body
+    const { title, content, location, user_id } = req.body;  
     try {
         const post = await knex('post').where('id', req.params.id).first();
         if (post.user_id !== user_id) {
@@ -76,10 +77,29 @@ router.put('/:id', async (req, res) => {
         res.status(400).json({ message: `Error updating post: ${err.message}` });
     }
 });
+router.get('/user/:user_id/posts-with-messages', async (req, res) => {
+    const { user_id } = req.params;
+    try {
+       
+        const posts = await knex('chats')
+            .join('post', 'chats.post_id', '=', 'post.id')
+            .join('user', 'post.user_id', '=', 'user.id')
+            .where('chats.user_id', user_id)
+            .select('post.*', 'user.name', 'user.profile_image')
+            .groupBy('post.id'); 
 
+        if (posts.length === 0) {
+            return res.status(404).send('No posts found where the user has participated in chats.');
+        }
+
+        res.status(200).json(posts);
+    } catch (err) {
+        res.status(400).send(`Error retrieving posts for user: ${err.message}`);
+    }
+});
 // delete a post  
 router.delete('/:id', async (req, res) => {
-    const { user_id } = req.body;  // Ensure user_id is passed in request body
+    const { user_id } = req.body;  
     try {
         const post = await knex('post').where('id', req.params.id).first();
         if (!post) {
@@ -94,5 +114,7 @@ router.delete('/:id', async (req, res) => {
         res.status(400).send(`Error deleting post: ${err.message}`);
     }
 });
+
+
 
 module.exports = router;
