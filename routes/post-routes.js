@@ -29,6 +29,23 @@ router.get('/:id', async (req, res) => {
         res.status(400).send(`Error retrieving post: ${err.message}`);
     }
 });
+router.get('/user/:user_id/posts', async (req, res) => {
+    const { user_id } = req.params; // Extract user_id from route parameters
+    try {
+        const posts = await knex('post')
+            .join('user', 'post.user_id', '=', 'user.id')
+            .where('post.user_id', user_id)
+            .select('post.*', 'user.name', 'user.profile_image');
+        
+        if (posts.length === 0) {
+            return res.status(404).send('No posts found for this user');
+        }
+
+        res.status(200).json(posts);
+    } catch (err) {
+        res.status(400).send(`Error retrieving user's posts: ${err.message}`);
+    }
+});
 
 // create a new post 
 router.post('/', async (req, res) => {

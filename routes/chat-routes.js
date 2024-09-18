@@ -17,15 +17,19 @@ router.get('/:postId', async (req, res) => {
   });
 
 // Post a new message
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { post_id, user_id, message } = req.body;
-  knex('chats').insert({ post_id, user_id, message })
-    .then(() => {
-      res.status(201).json({ message: 'Message posted successfully' });
-    })
-    .catch((err) => {
-      res.status(400).json({ error: err.message });
-    });
+
+  if (!post_id || !user_id || !message) {
+    return res.status(400).json({ error: 'post_id, user_id, and message are required' });
+  }
+
+  try {
+    await knex('chats').insert({ post_id, user_id, message });
+    res.status(201).json({ message: 'Message posted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: `Error posting message: ${err.message}` });
+  }
 });
 
 // Edit a message
