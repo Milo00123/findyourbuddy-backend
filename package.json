@@ -10,7 +10,7 @@
     "mysql2": "^3.11.0"
   },
   "scripts": {
-    "start": "node server.js",
+    "start": "node index.js",
     "migrate": "knex migrate:latest",
     "migrate:down": "knex migrate:down",
     "migrate:rollback": "knex migrate:rollback",
