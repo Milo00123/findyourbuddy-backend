@@ -9,16 +9,20 @@ const session =require('express-session');
 const PORT = process.env.PORT || 5050;
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true
 }));
 
 app.use(session({
-  secret: 'yourSecretKey',  // Use a strong secret
+  secret: process.env.SESSION_SECRET || 'yourSecretKey',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // Use secure: true in production with HTTPS
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true  // Helps mitigate XSS attacks
+  }
 }));
+
 
 
 const userRoutes = require('./routes/user-routes.js');
