@@ -97,15 +97,20 @@ router.put('/:id', upload.single('profile_image'), async (req, res) => {
         if (about) updateData.about = about;
         if (riding_level) updateData.riding_level = riding_level;
         if (profileImage) updateData.profile_image = profileImage;
+        // Log the session user ID
+        console.log('sessionUserId:', sessionUserId);
 
         const user = await knex('user').where('id', req.params.id).first();
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
+         // Log the user ID from the database
+         console.log('user.id:', user.id);
 
         if (user.id !== sessionUserId) {
             return res.status(403).json({ message: 'You are not authorized to update this profile' });
         }
+        
 
         const updated = await knex('user').where('id', req.params.id).update(updateData);
         if (updated) {
