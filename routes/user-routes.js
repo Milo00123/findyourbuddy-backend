@@ -56,6 +56,7 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ success: false, message: 'Invalid email or password' });
         }
         req.session.userId = user.id;
+        console.log('Session set:', req.session.userId); 
         console.log('Session set for user:', req.session.userId);
         return res.status(200).json({ success: true, userId: user.id });
     } catch (dbError) {
@@ -90,7 +91,7 @@ router.put('/:id', upload.single('profile_image'), async (req, res) => {
     const profileImage = req.file ? `/uploads/${req.file.filename}` : null;
 
     const sessionUserId = req.session.userId;
-
+    console.log('Session on profile update:', sessionUserId);
     try {
         const updateData = {};
         if (name) updateData.name = name;
