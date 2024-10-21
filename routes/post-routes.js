@@ -1,7 +1,7 @@
 const knex = require("knex")(require('../knexfile'));
 const router = require('express').Router();
 
-//fetch all users posts
+
 router.get('/', async (req, res) => {
     try {
         const posts = await knex('post')
@@ -13,7 +13,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-// fetch a single post by ID
 router.get('/:id', async (req, res) => {
     try {
         const post = await knex('post')
@@ -48,7 +47,6 @@ router.get('/user/:user_id/posts', async (req, res) => {
     }
 });
 
-// create a new post 
 router.post('/', async (req, res) => {
     const { title, content, location, user_id } = req.body; 
     try {
@@ -59,7 +57,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// update posts
+
 router.put('/:id', async (req, res) => {
     const { title, content, location, user_id } = req.body;  
     try {
@@ -97,7 +95,7 @@ router.get('/user/:user_id/posts-with-messages', async (req, res) => {
         res.status(400).send(`Error retrieving posts for user: ${err.message}`);
     }
 });
-// delete a post  
+
 router.delete('/:id', async (req, res) => {
     const { user_id } = req.body;  
     try {

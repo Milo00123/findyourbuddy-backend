@@ -19,7 +19,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: { 
     secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,  // Helps mitigate XSS attacks,
+    httpOnly: true, 
     sameSite: 'none',
   }
 }));

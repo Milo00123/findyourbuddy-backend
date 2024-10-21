@@ -2,8 +2,6 @@ const knex = require("knex")(require('../knexfile'));
 const router = require('express').Router();
 
 
-
-// Fetch messages for a specific post
 router.get('/:postId', async (req, res) => {
     try {
       const messages = await knex('chats')
@@ -16,7 +14,6 @@ router.get('/:postId', async (req, res) => {
     }
   });
 
-// Post a new message
 router.post('/', async (req, res) => {
   const { post_id, user_id, message } = req.body;
 
@@ -32,7 +29,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Edit a message
 router.put('/:id', async (req, res) => {
     const { message } = req.body;
     try {
@@ -47,7 +43,6 @@ router.put('/:id', async (req, res) => {
     }
   });
   
-  // Delete a message
   router.delete('/:id', async (req, res) => {
     try {
       const deleted = await knex('chats').where('id', req.params.id).del();

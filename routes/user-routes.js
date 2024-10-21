@@ -14,7 +14,6 @@ const storage = multer.diskStorage({
   
 const upload = multer({ storage });
 
-// Fetch all users
 router.get('/', async (req, res) => {
     try {
       const users = await knex('user').select('*');
@@ -24,7 +23,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Fetch a user by ID
 router.get('/:id', async (req, res) => {
     try {
       const user = await knex('user').where('id', req.params.id).first();
@@ -37,7 +35,6 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// User login route
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -64,7 +61,6 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// Delete a user
 router.delete('/:id', async (req, res) => {
     const sessionUserId = req.session.userId;
 
@@ -85,7 +81,6 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-// Update a user
 router.put('/:id', upload.single('profile_image'), async (req, res) => {
     const { name, about, riding_level } = req.body;
     const profileImage = req.file ? `/uploads/${req.file.filename}` : null;
@@ -98,25 +93,20 @@ router.put('/:id', upload.single('profile_image'), async (req, res) => {
         if (about) updateData.about = about;
         if (riding_level) updateData.riding_level = riding_level;
         if (profileImage) updateData.profile_image = profileImage;
-        // Log the session user ID
+
         console.log('sessionUserId:', sessionUserId);
 
         const user = await knex('user').where('id', req.params.id).first();
-        if (!user) {
+        if (!user) 
             return res.status(404).json({ message: 'User not found' });
-        }
-         // Log the user ID from the database
-         console.log('user.id:', user.id);
 
-        if (user.id !== sessionUserId) {
+        if (user.id !== sessionUserId) 
             return res.status(403).json({ message: 'You are not authorized to update this profile' });
-        }
         
-
         const updated = await knex('user').where('id', req.params.id).update(updateData);
         if (updated) {
             const updatedUser = await knex('user').where('id', req.params.id).first();
-            delete updatedUser.password;  // Exclude password from response
+            delete updatedUser.password;  
             res.status(200).json({ message: 'User updated successfully', user: updatedUser });
         } else {
             res.status(400).json({ message: 'Failed to update user' });
@@ -131,22 +121,13 @@ router.put('/password/:id', async (req, res) => {
 
     try {
         const user = await knex('user').where('id', req.params.id).first();
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        // Ensure the user is authorized (session ID must match)
-        if (user.id !== sessionUserId) {
-            return res.status(403).json({ message: 'You are not authorized to update this password' });
-        }
-
-        // Check if the current password matches
+        if (!user) 
+            return res.status(404).json({ message: 'User not found' });     
+        if (user.id !== sessionUserId) 
+            return res.status(403).json({ message: 'You are not authorized to update this password' }); 
         const isMatch = await bcrypt.compare(currentPassword, user.password);
-        if (!isMatch) {
-            return res.status(401).json({ message: 'Current password is incorrect' });
-        }
-
-        // Hash and update the new password
+        if (!isMatch) 
+            return res.status(401).json({ message: 'Current password is incorrect' });      
         const hashedNewPassword = await bcrypt.hash(newPassword, 10);
         await knex('user').where('id', req.params.id).update({ password: hashedNewPassword });
 
